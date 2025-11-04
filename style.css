@@ -207,9 +207,9 @@ body {
 /* Texto central */
 .gift-box-message {
     position: absolute;
-    top: 45%; /* <--- PADRÃO AGORA É 45% PARA PC E MOBILE */
+    top: 45%; /* <--- AJUSTE PC: Move o ponto de âncora para cima */
     left: 50%;
-    /* Mantém a centralização em relação ao texto */
+    /* Centraliza horizontalmente e verticalmente (do ponto 45%) */
     transform: translate(-50%, -50%); 
     
     color: #fffaf0;
@@ -266,7 +266,8 @@ body {
     .gift-box-message { 
         font-size: 1.8em; 
         white-space: nowrap; 
-        /* REMOVIDO: A regra "top: 50%;" para que herde o "top: 45%" do PC */
+        /* CORREÇÃO MOBILE: Move o ponto de âncora para baixo para centralizar no celular */
+        top: 50%; /* <--- CORREÇÃO MOBILE */
     }
     
     /* Garante a mesma espessura para ambas as faixas no mobile */
