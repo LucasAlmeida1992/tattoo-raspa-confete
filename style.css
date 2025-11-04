@@ -207,7 +207,7 @@ body {
 /* Texto central */
 .gift-box-message {
     position: absolute;
-    top: 45%; /* <--- AJUSTE PC: Move o ponto de âncora para cima */
+    top: 46%; /* <--- AJUSTE PC: Move o ponto de âncora para cima */
     left: 50%;
     /* Centraliza horizontalmente e verticalmente (do ponto 45%) */
     transform: translate(-50%, -50%); 
