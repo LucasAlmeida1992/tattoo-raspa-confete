@@ -209,7 +209,7 @@ body {
 /* Texto central */
 .gift-box-message {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     /* Ajuste para subir o texto um pouco, menos que o -60% original */
     transform: translate(-50%, -55%); 
@@ -293,3 +293,4 @@ body {
         font-size: 1.8rem; 
     }
 }
+
