@@ -1,3 +1,8 @@
+/*
+ * =========================================
+ * FONTES E ESTILOS GLOBAIS
+ * =========================================
+*/
 body {
     font-family: 'Roboto', sans-serif;
     background-image: url('imagemfundoold.png');
@@ -14,15 +19,24 @@ body {
     box-sizing: border-box;
 }
 
+/*
+ * =========================================
+ * CARTÃO (VALE-RASPADINHA) - ESTILOS BASE FAVORITOS
+ * =========================================
+*/
 .vale-container {
     background-color: #f7f3e9; 
     border: 2px dashed #c0b298;
     border-radius: 15px;
     padding: 25px;
-    max-width: 500px;
+    
+    max-width: 500px; 
+    
     width: 100%;
     text-align: center;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); 
+    
+    /* textura sutil */
     background-image: 
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
     background-size: auto;
@@ -30,6 +44,11 @@ body {
     background-repeat: repeat;
 }
 
+/*
+ * =========================================
+ * TEXTOS DO CARTÃO (MANTIDOS)
+ * =========================================
+*/
 .vale-container h1 {
     font-family: 'Oswald', sans-serif;
     color: #3f3020;
@@ -66,12 +85,18 @@ body {
     box-shadow: 0 0 10px rgba(255, 219, 172, 0.8);
 }
 
+/*
+ * =========================================
+ * ÁREA DA RASPADINHA
+ * =========================================
+*/
 .scratch-wrapper {
     position: relative;
     width: 100%;
     padding-top: 33.33%; 
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1); 
 }
 
 .prize-content {
@@ -115,13 +140,142 @@ body {
     cursor: grabbing;
 }
 
+/*
+ * =========================================
+ * CAIXA DE PRESENTE
+ * =========================================
+*/
+.gift-box {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(145deg, #b32400, #751a00);
+    z-index: 9999;
+    overflow: hidden;
+    transition: opacity 1s ease-out;
+    pointer-events: auto;
+    box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Textura leve na caixa */
+.gift-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+    opacity: 0.25;
+    z-index: 0;
+}
+
+/* FAIXAS (FITAS) */
+.gift-ribbon-left,
+.gift-ribbon-center {
+    position: absolute;
+    background: linear-gradient(to bottom, #a30000, #ff3c3c, #a30000);
+    box-shadow:
+        inset 0 0 15px rgba(255,255,255,0.4),
+        inset 0 0 30px rgba(0,0,0,0.4),
+        0 0 20px rgba(0,0,0,0.6);
+    transition: transform 0.8s ease-in-out, opacity 0.8s ease-in-out;
+}
+
+/* Faixa Vertical */
+.gift-ribbon-left {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100%;
+    width: 12vw;
+    z-index: 10001;
+}
+
+/* Faixa Horizontal */
+.gift-ribbon-center {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%); 
+    width: 100%;
+    height: 12vw;
+    z-index: 10002;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+}
+
+/* Texto central */
+.gift-box-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* ✨ AJUSTE DE POSIÇÃO: Subindo o texto */
+    transform: translate(-50%, -60%); 
+    
+    color: #fffaf0;
+    font-family: 'Oswald', sans-serif;
+    font-size: 2.4em;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+    z-index: 10004;
+    pointer-events: none;
+    
+    padding: 0.4em 1em; 
+    background: rgba(0, 0, 0, 0.25);
+    line-height: 1; 
+    
+    border-radius: 8px;
+    animation: pulseText 1.5s infinite alternate;
+    text-align: center;
+}
+
+/*
+ * =========================================
+ * ANIMAÇÕES
+ * =========================================
+*/
+@keyframes pulseText {
+    0% { opacity: 1; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+    100% { opacity: 0.7; text-shadow: 0 0 14px rgba(255,255,255,0.9); }
+}
+
+/* Efeito de corte das faixas */
+.gift-box.opened .gift-ribbon-left {
+    transform: translateX(-50%) rotate(12deg) scaleY(0.6);
+    opacity: 0;
+}
+.gift-box.opened .gift-ribbon-center {
+    transform: translateY(-50%) rotate(-12deg) scaleX(0.6);
+    opacity: 0;
+}
+.gift-box.opened {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/*
+ * =========================================
+ * RESPONSIVO
+ * =========================================
+*/
+@media (max-width: 600px) {
+    /* Garante que a frase fique em uma única linha no mobile */
+    .gift-box-message { 
+        font-size: 1.8em; 
+        white-space: nowrap; 
+    }
+    
+    /* Garante a mesma espessura para ambas as faixas no mobile */
+    .gift-ribbon-left { width: 20vw; }
+    .gift-ribbon-center { height: 20vw; }
+}
+
 @media (max-width: 450px) {
     .vale-container h1 {
         font-size: 1.8rem;
     }
 
     .scratch-wrapper {
-        padding-top: 50%;
+        padding-top: 50%; 
     }
     
     .prize-content {
