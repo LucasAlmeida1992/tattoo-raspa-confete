@@ -13,6 +13,19 @@
 </head>
 <body>
 
+    <div id="gift-box" class="gift-box">
+        
+        <div class="gift-ribbon-left"></div>
+        <div class="gift-ribbon-right"></div>
+        
+        <div class="gift-ribbon-left"></div>
+        
+        <div class="gift-ribbon-center"></div> 
+        
+        <p class="gift-box-message">Toque para Abrir!</p> 
+        
+    </div>
+    
     <div class="vale-container">
 
         <h1 id="titulo-presente">VOCÊ FOI PRESENTEADO(A) COM UM VALE TATTOO</h1>
@@ -39,12 +52,13 @@
 
     </div> 
     
-    <!-- Sons -->
+    <audio id="som-abrir-caixa" src="tesoura.wav" preload="auto"></audio> 
+    
     <audio id="som-raspar" src="som-raspar.mp3" preload="auto" loop></audio>
     <audio id="som-confete" src="confeteestouro.wav" preload="auto"></audio>
 
-    <!-- Script da raspadinha -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="raspadinha.js" defer></script>
 </body>
 </html>
+
