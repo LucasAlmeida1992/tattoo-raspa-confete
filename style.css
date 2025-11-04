@@ -209,7 +209,7 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    /* ✨ AJUSTE DE POSIÇÃO: Subindo o texto */
+    /* AJUSTE DE POSIÇÃO: Subindo o texto */
     transform: translate(-50%, -60%); 
     
     color: #fffaf0;
@@ -238,7 +238,7 @@ body {
     100% { opacity: 0.7; text-shadow: 0 0 14px rgba(255,255,255,0.9); }
 }
 
-/* Efeito de corte das faixas */
+/* Efeito de corte das faixas e ocultação da mensagem */
 .gift-box.opened .gift-ribbon-left {
     transform: translateX(-50%) rotate(12deg) scaleY(0.6);
     opacity: 0;
@@ -246,6 +246,10 @@ body {
 .gift-box.opened .gift-ribbon-center {
     transform: translateY(-50%) rotate(-12deg) scaleX(0.6);
     opacity: 0;
+}
+.gift-box.opened .gift-box-message { /* AQUI ESTÁ O AJUSTE PARA O TEXTO SUMIR */
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
 }
 .gift-box.opened {
     opacity: 0;
