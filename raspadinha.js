@@ -2,18 +2,27 @@
 const canvas = document.getElementById('scratch-canvas');
 const ctx = canvas.getContext('2d');
 const scratchSound = document.getElementById('som-raspar');
-const confettiSound = document.getElementById('som-confete'); // Adicione o elemento <audio id="som-confete"> ao seu HTML
+const confettiSound = document.getElementById('som-confete'); 
+// NOVO: Som de abertura da caixa
+const openBoxSound = document.getElementById('som-abrir-caixa'); 
+
 const prizeContent = document.querySelector('.prize-content');
 const prizeContainer = document.querySelector('.scratch-wrapper');
 
+// ✨ Elemento da caixa de presente (Adicionado)
+const giftBox = document.getElementById('gift-box');
+let giftBoxOpened = false; // Flag para controlar a abertura da caixa
+
 // ✨ CONFIGURAÇÃO DOS CONFETES
 let confettiTriggered = false;
-// ✨ CORREÇÃO 1: Reduzido para 50% para estourar mais cedo
 const WIN_THRESHOLD = 50; 
 
 let isDrawing = false;
 let lastPosition = null;
 let isResizingAllowed = true;
+
+// Flag para evitar raspagem imediata após a abertura da caixa
+let isProtectedFromTouch = false;
 
 // =============================
 // SALVAR ESTADO
@@ -45,7 +54,7 @@ function setupCanvas() {
 }
 
 // =============================
-// POSIÇÃO MOUSE / TOQUE
+// POSIÇÃO MOUSE / TOQUE (Inalterado)
 // =============================
 function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
@@ -61,7 +70,7 @@ function getTouchPos(e) {
 }
 
 // =============================
-// FUNÇÃO DE RASPAR
+// FUNÇÃO DE RASPAR (Inalterado)
 // =============================
 function scratch(x, y) {
     ctx.globalCompositeOperation = 'destination-out';
@@ -78,7 +87,7 @@ function scratch(x, y) {
 }
 
 // =============================
-// DESENHAR LINHA CONTÍNUA
+// DESENHAR LINHA CONTÍNUA (Inalterado)
 // =============================
 function drawScratchLine(from, to) {
     const dx = to.x - from.x;
@@ -99,28 +108,96 @@ function drawScratchLine(from, to) {
     }
     scratch(to.x, to.y);
     
-    // Salva o estado uma única vez após toda a linha ser desenhada
     saveCanvasState(); 
-    
-    // Verifica o quanto já foi raspado
     checkScratchCompletion();
 }
 
 // =============================
-// SOM
+// SOM (VERSÃO LIMPA E FUNCIONAL)
 // =============================
-function playSound() { scratchSound.play().catch(() => {}); }
-function stopSound() { scratchSound.pause(); scratchSound.currentTime = 0; }
+function playSound() { 
+    if (scratchSound.paused) {
+        scratchSound.currentTime = 0; 
+        scratchSound.play().catch(() => {}); 
+    }
+}
+function stopSound() { 
+    scratchSound.pause(); 
+    scratchSound.currentTime = 0; 
+}
+
+// NOVO: Função auxiliar para tocar o som de abertura
+function playOpenBoxSound() {
+    if (openBoxSound) {
+        openBoxSound.currentTime = 0;
+        openBoxSound.play().catch(() => {});
+    }
+}
 
 // =============================
-// EVENTOS (AJUSTADOS)
+// NOVO: ABRIR CAIXA DE PRESENTE (Com Som e Proteção)
+// =============================
+function openGiftBox() {
+    // 1. CHECA SE A FUNÇÃO JÁ FOI EXECUTADA NA SESSÃO
+    if (sessionStorage.getItem('giftBoxOpenedThisSession')) {
+        return;
+    }
+    
+    if (giftBoxOpened) return;
+
+    // 2. REGISTRA A ABERTURA NO sessionStorage
+    sessionStorage.setItem('giftBoxOpenedThisSession', 'true');
+
+    // 3. TOCA O NOVO SOM DA TESOURA AQUI
+    playOpenBoxSound();
+
+    // Remove os listeners da caixa para não disparar novamente
+    giftBox.removeEventListener('click', openGiftBox);
+    giftBox.removeEventListener('touchstart', openGiftBox);
+
+    giftBox.classList.add('opened'); 
+    
+    // ATIVAÇÃO DA PROTEÇÃO: BLOQUEIA A RASPADINHA POR UM TEMPO CURTO
+    isProtectedFromTouch = true;
+    
+    setTimeout(() => {
+        isProtectedFromTouch = false;
+    }, 300); // 300ms de proteção após a abertura.
+
+    // CRUCIAL: Após a animação (1s), torna a div fisicamente invisível para cliques
+    setTimeout(() => {
+        giftBox.classList.add('hidden');
+        giftBox.style.pointerEvents = 'none'; 
+    }, 1000); 
+
+    giftBoxOpened = true; 
+}
+
+// =============================
+// EVENTOS (INTEGRAÇÃO DA CAIXA)
 // =============================
 window.addEventListener('mouseup', () => { isDrawing = false; stopSound(); lastPosition = null; isResizingAllowed = true; });
 
-canvas.addEventListener('mousedown', (e) => { isDrawing = true; isResizingAllowed = false; playSound(); lastPosition = getMousePos(e); scratch(lastPosition.x, lastPosition.y); });
+// Listener global para a caixa de presente
+giftBox.addEventListener('click', openGiftBox);
+giftBox.addEventListener('touchstart', openGiftBox);
+
+canvas.addEventListener('mousedown', (e) => { 
+    // ✨ Agora checa se a caixa está aberta E se não está protegida
+    if (!giftBoxOpened || isProtectedFromTouch) return; 
+    
+    isDrawing = true; 
+    isResizingAllowed = false; 
+    playSound();
+    lastPosition = getMousePos(e); 
+    scratch(lastPosition.x, lastPosition.y); 
+});
 
 // Mouse entra: reativa som e desenho
 canvas.addEventListener('mouseenter', (e) => {
+    // ✨ Só reativa se a caixa estiver aberta E se não está protegida
+    if (!giftBoxOpened || isProtectedFromTouch) return; 
+
     if (e.buttons === 1) { 
         isDrawing = true;
         isResizingAllowed = false;
@@ -138,24 +215,47 @@ canvas.addEventListener('mousemove', (e) => {
 
 canvas.addEventListener('mouseout', () => { stopSound(); lastPosition = null; });
 
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; isResizingAllowed = false; playSound(); lastPosition = getTouchPos(e); scratch(lastPosition.x, lastPosition.y); }, { passive: false });
+canvas.addEventListener('touchstart', (e) => { 
+    // ✨ Se a caixa não abriu, usa o toque para abri-la e sai da função.
+    if (!giftBoxOpened) {
+        openGiftBox();
+        e.preventDefault();
+        return;
+    }
+    
+    // ✨ Bloqueia a raspagem se estiver protegido
+    if (isProtectedFromTouch) {
+        e.preventDefault();
+        return;
+    }
+    
+    e.preventDefault(); 
+    isDrawing = true; 
+    isResizingAllowed = false; 
+    
+    playSound(); 
+    
+    lastPosition = getTouchPos(e); 
+    scratch(lastPosition.x, lastPosition.y); 
+}, { passive: false });
+
 canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!isDrawing) return; const currentPos = getTouchPos(e); if (lastPosition) drawScratchLine(lastPosition, currentPos); lastPosition = currentPos; }, { passive: false });
 canvas.addEventListener('touchend', () => { isDrawing = false; stopSound(); lastPosition = null; isResizingAllowed = true; });
 canvas.addEventListener('touchcancel', () => { isDrawing = false; stopSound(); lastPosition = null; isResizingAllowed = true; });
 
 // =============================
-// PARAMS DA URL
+// PARAMS DA URL (Inalterado)
 // =============================
 const urlParams = new URLSearchParams(window.location.search);
 const valorDoVale = urlParams.get('valor');
 if (valorDoVale) document.getElementById('valor-premio').textContent = `(Vale R$${valorDoVale})`;
 const genero = urlParams.get('genero');
 const tituloElement = document.getElementById('titulo-presente');
-if (genero === 'a') tituloElement.textContent = 'VOCÊ FOI PRESENTEADA COM UM VALE TATTOO';
-else if (genero === 'o') tituloElement.textContent = 'VOCÊ FOI PRESENTEADO COM UM VALE TATTOO';
+if (genero === 'a') document.getElementById('titulo-presente').textContent = 'VOCÊ FOI PRESENTEADA COM UM VALE TATTOO';
+else if (genero === 'o') document.getElementById('titulo-presente').textContent = 'VOCÊ FOI PRESENTEADO COM UM VALE TATTOO';
 
 // =============================
-// REDIMENSIONAMENTO
+// REDIMENSIONAMENTO (Inalterado)
 // =============================
 function resizeAndSetupCanvas(force = false) {
     if (!isResizingAllowed && !force) return;
@@ -178,10 +278,9 @@ function debounce(func, wait = 100) {
 window.addEventListener('resize', debounce(() => resizeAndSetupCanvas(), 150));
 
 // =============================
-// 🎉 DETECTAR CONCLUSÃO E CONFETE
+// 🎉 DETECTAR CONCLUSÃO E CONFETE (Inalterado)
 // =============================
 function checkScratchCompletion() {
-    // Se a função confetti não estiver disponível ou já tiver sido acionada, pare aqui
     if (typeof confetti === 'undefined' || confettiTriggered) return;
     
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -217,12 +316,11 @@ function startConfetti() {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     
-    // ✨ CORREÇÃO 2: Cores mais variadas
     const defaults = { 
         startVelocity: 35,
         ticks: 60, 
         zIndex: 2000,
-        colors: ['#ff0a54', '#ff477e', '#ff7096', '#ff85a1', '#fbb1bd', '#f9bec7', '#00b0ff', '#ffeb3b', '#4caf50', '#9c27b0'] // Mais cores!
+        colors: ['#ff0a54', '#ff477e', '#ff7096', '#ff85a1', '#fbb1bd', '#f9bec7', '#00b0ff', '#ffeb3b', '#4caf50', '#9c27b0']
     };
 
     function randomInRange(min, max) {
@@ -266,6 +364,23 @@ function startConfetti() {
 }
 
 // =============================
-// INICIALIZAR
+// INICIALIZAR (Função Única de Carregamento)
 // =============================
-resizeAndSetupCanvas(true);
+function init() {
+    // Checa se a caixa já foi aberta na sessão (persistência por tab/navegador aberto)
+    if (sessionStorage.getItem('giftBoxOpenedThisSession')) {
+        // Se sim, esconde a caixa imediatamente e remove os eventos
+        giftBox.style.opacity = '0';
+        giftBox.style.pointerEvents = 'none';
+        giftBoxOpened = true; // Marca como aberta para permitir raspagem
+        
+        // Remove os listeners da caixa para garantir que não haja abertura acidental
+        giftBox.removeEventListener('click', openGiftBox);
+        giftBox.removeEventListener('touchstart', openGiftBox);
+    }
+    
+    resizeAndSetupCanvas(true);
+}
+
+// Chame a função de inicialização
+init();
