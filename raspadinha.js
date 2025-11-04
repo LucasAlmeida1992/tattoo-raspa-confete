@@ -3,17 +3,14 @@ const canvas = document.getElementById('scratch-canvas');
 const ctx = canvas.getContext('2d');
 const scratchSound = document.getElementById('som-raspar');
 const confettiSound = document.getElementById('som-confete'); 
-// NOVO: Som de abertura da caixa
-const openBoxSound = document.getElementById('som-abrir-caixa'); 
+const openBoxSound = document.getElementById('som-abrir-caixa'); // SOM TESOURA
 
 const prizeContent = document.querySelector('.prize-content');
 const prizeContainer = document.querySelector('.scratch-wrapper');
 
-// ✨ Elemento da caixa de presente (Adicionado)
 const giftBox = document.getElementById('gift-box');
-let giftBoxOpened = false; // Flag para controlar a abertura da caixa
+let giftBoxOpened = false; 
 
-// ✨ CONFIGURAÇÃO DOS CONFETES
 let confettiTriggered = false;
 const WIN_THRESHOLD = 50; 
 
@@ -126,17 +123,27 @@ function stopSound() {
     scratchSound.currentTime = 0; 
 }
 
-// NOVO: Função auxiliar para tocar o som de abertura
+// AJUSTE DE SOM: Função auxiliar para tocar o som de abertura (Melhoria para Mobile/Autoplay)
 function playOpenBoxSound() {
     if (openBoxSound) {
+        // Tenta 'desbloquear' o áudio (volume = 0) na primeira interação
+        openBoxSound.volume = 0; 
         openBoxSound.currentTime = 0;
-        openBoxSound.play().catch(() => {});
+        
+        openBoxSound.play().then(() => {
+            // Se conseguir tocar (desbloqueado), restaura o volume para 1
+            openBoxSound.volume = 1; 
+        }).catch(error => {
+            // Se a promessa for rejeitada (bloqueado), tenta tocar novamente diretamente no volume 1 (Fallback)
+            openBoxSound.volume = 1;
+            openBoxSound.play().catch(() => {});
+        });
     }
 }
 
 // =============================
 // NOVO: ABRIR CAIXA DE PRESENTE (Com Som e Proteção)
-// =============================
+// ===================================
 function openGiftBox() {
     // 1. CHECA SE A FUNÇÃO JÁ FOI EXECUTADA NA SESSÃO
     if (sessionStorage.getItem('giftBoxOpenedThisSession')) {
@@ -372,7 +379,7 @@ function init() {
         // Se sim, esconde a caixa imediatamente e remove os eventos
         giftBox.style.opacity = '0';
         giftBox.style.pointerEvents = 'none';
-        giftBoxOpened = true; // Marca como aberta para permitir raspagem
+        giftBoxOpened = true; 
         
         // Remove os listeners da caixa para garantir que não haja abertura acidental
         giftBox.removeEventListener('click', openGiftBox);
